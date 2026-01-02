@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Autocomplete,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   Collapse,
   Dialog,
   DialogActions,
@@ -45,8 +47,53 @@ type WizardDialogProps = {
 export default function WizardDialog({ open, onClose, onSave }: WizardDialogProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [form, setForm] = useState<WizardForm>(initialForm);
+  const [imageOptions, setImageOptions] = useState<string[]>([]);
+  const [imageLoading, setImageLoading] = useState(false);
 
   const commandPreview = useMemo(() => buildDockerRunCommand(form), [form]);
+
+  useEffect(() => {
+    const query = form.imageName.trim();
+    if (query.length < 4) {
+      setImageOptions([]);
+      setImageLoading(false);
+      return;
+    }
+
+    setImageLoading(true);
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/dockerhub/v2/search/repositories/?query=${encodeURIComponent(
+            query
+          )}&page_size=10`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) {
+          setImageOptions([]);
+          return;
+        }
+        const data = (await response.json()) as {
+          results?: Array<{ repo_name?: string }>;
+        };
+        const options =
+          data.results?.map((item) => item.repo_name).filter(Boolean) ?? [];
+        setImageOptions(options as string[]);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setImageOptions([]);
+        }
+      } finally {
+        setImageLoading(false);
+      }
+    }, 450);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [form.imageName]);
 
   const handleClose = () => {
     onClose();
@@ -98,15 +145,34 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                 }
                 fullWidth
               />
-              <TextField
-                label="イメージ名"
-                value={form.imageName}
-                placeholder="nginx:latest"
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, imageName: event.target.value }))
+              <Autocomplete
+                freeSolo
+                options={imageOptions}
+                inputValue={form.imageName}
+                onInputChange={(_, value) =>
+                  setForm((prev) => ({ ...prev, imageName: value }))
                 }
-                required
-                fullWidth
+                loading={imageLoading}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="イメージ名"
+                    placeholder="nginx:latest"
+                    required
+                    fullWidth
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {imageLoading ? (
+                            <CircularProgress color="inherit" size={18} />
+                          ) : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
               />
             </Stack>
           )}
