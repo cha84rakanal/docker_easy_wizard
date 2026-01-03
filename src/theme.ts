@@ -4,14 +4,17 @@ export const appTheme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#0f4c5c",
+      main: "#1b7fa7",
     },
     secondary: {
-      main: "#f4a261",
+      main: "#6fd3f5",
     },
     background: {
-      default: "#f4f1ea",
+      default: "#eef7fb",
       paper: "#ffffff",
+    },
+    info: {
+      main: "#2b95bf",
     },
   },
   typography: {
@@ -25,6 +28,6 @@ export const appTheme = createTheme({
     },
   },
   shape: {
-    borderRadius: 18,
+    borderRadius: 10,
   },
 });
