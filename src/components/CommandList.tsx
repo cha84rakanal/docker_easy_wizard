@@ -19,6 +19,16 @@ type CommandListProps = {
 };
 
 export default function CommandList({ entries, onCreateClick }: CommandListProps) {
+  const getImageLabel = (entry: CommandEntry) => {
+    if (!entry.imageName.trim()) {
+      return "イメージ未設定";
+    }
+    const tagName = entry.tagName.trim() || "latest";
+    return entry.imageName.includes(":")
+      ? entry.imageName
+      : `${entry.imageName}:${tagName}`;
+  };
+
   return (
     <Box className="hero">
       <Container maxWidth="lg">
@@ -60,7 +70,7 @@ export default function CommandList({ entries, onCreateClick }: CommandListProps
                   <Card className="card-rise">
                     <CardHeader
                       title={entry.containerName || "コンテナ名未設定"}
-                      subheader={entry.imageName || "イメージ未設定"}
+                      subheader={getImageLabel(entry)}
                     />
                     <CardContent>
                       <Stack spacing={2}>

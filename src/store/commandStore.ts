@@ -7,6 +7,7 @@ type RunMode = "detach" | "interactive";
 export type WizardForm = {
   containerName: string;
   imageName: string;
+  tagName: string;
   removeAfterStop: boolean;
   publishPorts: boolean;
   hostPort: string;
@@ -28,6 +29,7 @@ export type CommandEntry = WizardForm & {
 export const initialForm: WizardForm = {
   containerName: "",
   imageName: "",
+  tagName: "latest",
   removeAfterStop: false,
   publishPorts: false,
   hostPort: "",
@@ -75,7 +77,12 @@ export const buildDockerRunCommand = (form: WizardForm) => {
   }
 
   if (form.imageName.trim()) {
-    parts.push(form.imageName.trim());
+    const baseImage = form.imageName.trim();
+    const tagName = form.tagName.trim() || "latest";
+    const imageWithTag = baseImage.includes(":")
+      ? baseImage
+      : `${baseImage}:${tagName}`;
+    parts.push(imageWithTag);
   }
 
   if (form.command.trim()) {

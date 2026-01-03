@@ -49,6 +49,8 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
   const [form, setForm] = useState<WizardForm>(initialForm);
   const [imageOptions, setImageOptions] = useState<string[]>([]);
   const [imageLoading, setImageLoading] = useState(false);
+  const [tagOptions, setTagOptions] = useState<string[]>([]);
+  const [tagLoading, setTagLoading] = useState(false);
 
   const commandPreview = useMemo(() => buildDockerRunCommand(form), [form]);
 
@@ -94,6 +96,65 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
       window.clearTimeout(timer);
     };
   }, [form.imageName]);
+
+  useEffect(() => {
+    const imageName = form.imageName.trim();
+    const tagQuery = form.tagName.trim();
+    const baseImage = imageName.split(":")[0];
+
+    if (!baseImage || tagQuery.length === 0) {
+      setTagOptions([]);
+      setTagLoading(false);
+      return;
+    }
+
+    const firstSegment = baseImage.split("/")[0];
+    if (firstSegment.includes(".") || firstSegment.includes(":")) {
+      setTagOptions([]);
+      setTagLoading(false);
+      return;
+    }
+
+    const repoPath = baseImage.includes("/") ? baseImage : `library/${baseImage}`;
+    const encodedRepo = repoPath
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+
+    setTagLoading(true);
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/dockerhub/v2/repositories/${encodedRepo}/tags/?name=${encodeURIComponent(
+            tagQuery
+          )}&page_size=10`,
+          { signal: controller.signal }
+        );
+        if (!response.ok) {
+          setTagOptions([]);
+          return;
+        }
+        const data = (await response.json()) as {
+          results?: Array<{ name?: string }>;
+        };
+        const options =
+          data.results?.map((item) => item.name).filter(Boolean) ?? [];
+        setTagOptions(options as string[]);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setTagOptions([]);
+        }
+      } finally {
+        setTagLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [form.imageName, form.tagName]);
 
   const handleClose = () => {
     onClose();
@@ -165,6 +226,34 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                       endAdornment: (
                         <>
                           {imageLoading ? (
+                            <CircularProgress color="inherit" size={18} />
+                          ) : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+              <Autocomplete
+                freeSolo
+                options={tagOptions}
+                inputValue={form.tagName}
+                onInputChange={(_, value) =>
+                  setForm((prev) => ({ ...prev, tagName: value }))
+                }
+                loading={tagLoading}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="タグ名"
+                    placeholder="latest"
+                    fullWidth
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {tagLoading ? (
                             <CircularProgress color="inherit" size={18} />
                           ) : null}
                           {params.InputProps.endAdornment}
