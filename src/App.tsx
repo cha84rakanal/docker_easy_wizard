@@ -19,16 +19,7 @@ export default function App() {
 
   return (
     <Box className="app-shell">
-      <AppBar
-        position="sticky"
-        color="transparent"
-        elevation={0}
-        sx={{
-          backgroundColor: "rgba(231, 245, 252, 0.9)",
-          backdropFilter: "blur(10px)",
-          borderBottom: "1px solid rgba(27, 127, 167, 0.12)",
-        }}
-      >
+      <AppBar position="sticky" color="primary" elevation={0}>
         <Toolbar sx={{ justifyContent: "space-between" }}>
           <Box>
             <Typography variant="h6">Docker Run Wizard</Typography>
@@ -38,7 +29,13 @@ export default function App() {
           </Box>
           <Button
             variant="contained"
-            color="secondary"
+            sx={{
+              backgroundColor: "#ffffff",
+              color: "primary.main",
+              "&:hover": {
+                backgroundColor: "#eef7fb",
+              },
+            }}
             startIcon={<AddIcon />}
             onClick={handleOpenWizard}
           >
