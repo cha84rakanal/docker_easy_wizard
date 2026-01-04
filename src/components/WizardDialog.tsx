@@ -17,9 +17,9 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Select,
   Radio,
   RadioGroup,
-  Select,
   Stack,
   Step,
   StepLabel,
@@ -51,6 +51,7 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
   const [imageLoading, setImageLoading] = useState(false);
   const [tagOptions, setTagOptions] = useState<string[]>([]);
   const [tagLoading, setTagLoading] = useState(false);
+  const [tagMode, setTagMode] = useState<"preset" | "other">("preset");
 
   const commandPreview = useMemo(() => buildDockerRunCommand(form), [form]);
 
@@ -99,12 +100,13 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
 
   useEffect(() => {
     const imageName = form.imageName.trim();
-    const tagQuery = form.tagName.trim();
     const baseImage = imageName.split(":")[0];
 
-    if (!baseImage || tagQuery.length === 0) {
+    if (!baseImage) {
       setTagOptions([]);
       setTagLoading(false);
+      setTagMode("preset");
+      setForm((prev) => ({ ...prev, tagName: "latest" }));
       return;
     }
 
@@ -112,6 +114,8 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
     if (firstSegment.includes(".") || firstSegment.includes(":")) {
       setTagOptions([]);
       setTagLoading(false);
+      setTagMode("preset");
+      setForm((prev) => ({ ...prev, tagName: "latest" }));
       return;
     }
 
@@ -126,9 +130,7 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
     const timer = window.setTimeout(async () => {
       try {
         const response = await fetch(
-          `/api/dockerhub/v2/repositories/${encodedRepo}/tags/?name=${encodeURIComponent(
-            tagQuery
-          )}&page_size=10`,
+          `/api/dockerhub/v2/repositories/${encodedRepo}/tags/?page_size=30&ordering=last_updated`,
           { signal: controller.signal }
         );
         if (!response.ok) {
@@ -140,7 +142,13 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
         };
         const options =
           data.results?.map((item) => item.name).filter(Boolean) ?? [];
-        setTagOptions(options as string[]);
+        const merged = Array.from(new Set(["latest", ...options]));
+        setTagOptions(merged);
+        setTagMode("preset");
+        setForm((prev) => ({
+          ...prev,
+          tagName: merged.includes(prev.tagName) ? prev.tagName : "latest",
+        }));
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
           setTagOptions([]);
@@ -148,13 +156,13 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
       } finally {
         setTagLoading(false);
       }
-    }, 350);
+    }, 400);
 
     return () => {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [form.imageName, form.tagName]);
+  }, [form.imageName]);
 
   const handleClose = () => {
     onClose();
@@ -235,34 +243,49 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                   />
                 )}
               />
-              <Autocomplete
-                freeSolo
-                options={tagOptions}
-                inputValue={form.tagName}
-                onInputChange={(_, value) =>
-                  setForm((prev) => ({ ...prev, tagName: value }))
-                }
-                loading={tagLoading}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="タグ名"
-                    placeholder="latest"
-                    fullWidth
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {tagLoading ? (
-                            <CircularProgress color="inherit" size={18} />
-                          ) : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
-              />
+              <FormControl fullWidth>
+                <InputLabel id="tag-select-label">タグ名</InputLabel>
+                <Select
+                  labelId="tag-select-label"
+                  label="タグ名"
+                  value={tagMode === "other" ? "__other__" : form.tagName}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (value === "__other__") {
+                      setTagMode("other");
+                      setForm((prev) => ({
+                        ...prev,
+                        tagName: prev.tagName || "latest",
+                      }));
+                      return;
+                    }
+                    setTagMode("preset");
+                    setForm((prev) => ({ ...prev, tagName: value }));
+                  }}
+                  disabled={tagOptions.length === 0}
+                  endAdornment={
+                    tagLoading ? <CircularProgress color="inherit" size={18} /> : null
+                  }
+                >
+                  {tagOptions.map((tag) => (
+                    <MenuItem value={tag} key={tag}>
+                      {tag}
+                    </MenuItem>
+                  ))}
+                  <MenuItem value="__other__">other</MenuItem>
+                </Select>
+              </FormControl>
+              <Collapse in={tagMode === "other"}>
+                <TextField
+                  label="タグ名 (自由入力)"
+                  placeholder="latest"
+                  value={form.tagName}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, tagName: event.target.value }))
+                  }
+                  fullWidth
+                />
+              </Collapse>
             </Stack>
           )}
 
