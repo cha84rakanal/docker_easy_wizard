@@ -226,7 +226,7 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                   <TextField
                     {...params}
                     label="イメージ名"
-                    placeholder="nginx:latest"
+                    placeholder="ex) nginx, nvidia/cuda"
                     required
                     fullWidth
                     InputProps={{
