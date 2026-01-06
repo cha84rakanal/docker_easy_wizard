@@ -34,7 +34,7 @@ import {
   type GpuMode,
   type RunMode,
   type WizardForm,
-} from "../store/commandStore";
+} from "../models/command";
 
 const steps = ["基本情報", "詳細オプション", "コマンド"];
 

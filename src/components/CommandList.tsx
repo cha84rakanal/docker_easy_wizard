@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import type { CommandEntry } from "../store/commandStore";
+import type { CommandEntry } from "../models/command";
 
 type CommandListProps = {
   entries: CommandEntry[];
