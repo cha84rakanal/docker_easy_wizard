@@ -42,9 +42,17 @@ type WizardDialogProps = {
   open: boolean;
   onClose: () => void;
   onSave: (form: WizardForm) => void;
+  initialFormData?: WizardForm;
+  mode?: "create" | "edit";
 };
 
-export default function WizardDialog({ open, onClose, onSave }: WizardDialogProps) {
+export default function WizardDialog({
+  open,
+  onClose,
+  onSave,
+  initialFormData,
+  mode = "create",
+}: WizardDialogProps) {
   const [activeStep, setActiveStep] = useState(0);
   const [form, setForm] = useState<WizardForm>(initialForm);
   const [imageOptions, setImageOptions] = useState<string[]>([]);
@@ -54,6 +62,15 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
   const [tagMode, setTagMode] = useState<"preset" | "other">("preset");
 
   const commandPreview = useMemo(() => buildDockerRunCommand(form), [form]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    setForm(initialFormData ?? initialForm);
+    setActiveStep(0);
+    setTagMode("preset");
+  }, [initialFormData, open]);
 
   useEffect(() => {
     const query = form.imageName.trim();
@@ -144,11 +161,15 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
           data.results?.map((item) => item.name).filter(Boolean) ?? [];
         const merged = Array.from(new Set(["latest", ...options]));
         setTagOptions(merged);
-        setTagMode("preset");
-        setForm((prev) => ({
-          ...prev,
-          tagName: merged.includes(prev.tagName) ? prev.tagName : "latest",
-        }));
+        setForm((prev) => {
+          const tagName = prev.tagName.trim() || "latest";
+          const isKnown = merged.includes(tagName);
+          setTagMode(isKnown ? "preset" : "other");
+          return {
+            ...prev,
+            tagName,
+          };
+        });
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
           setTagOptions([]);
@@ -168,6 +189,7 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
     onClose();
     setActiveStep(0);
     setForm(initialForm);
+    setTagMode("preset");
   };
 
   const handleNext = () => {
@@ -184,11 +206,15 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
   };
 
   const isStepOneValid = form.imageName.trim().length > 0;
+  const tagSelectValue =
+    tagMode === "other" || !tagOptions.includes(form.tagName)
+      ? "__other__"
+      : form.tagName;
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
-        Wizardでdocker runを構築
+        {mode === "edit" ? "コマンドを編集" : "Wizardでdocker runを構築"}
         <IconButton onClick={handleClose} sx={{ marginLeft: "auto" }} aria-label="close">
           <CloseIcon />
         </IconButton>
@@ -248,7 +274,7 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                 <Select
                   labelId="tag-select-label"
                   label="タグ名"
-                  value={tagMode === "other" ? "__other__" : form.tagName}
+                  value={tagSelectValue}
                   onChange={(event) => {
                     const value = event.target.value;
                     if (value === "__other__") {
@@ -262,7 +288,7 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                     setTagMode("preset");
                     setForm((prev) => ({ ...prev, tagName: value }));
                   }}
-                  disabled={tagOptions.length === 0}
+                  disabled={!form.imageName.trim()}
                   endAdornment={
                     tagLoading ? <CircularProgress color="inherit" size={18} /> : null
                   }
@@ -501,11 +527,11 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
             >
               次へ
             </Button>
-          ) : (
-            <Button variant="contained" color="secondary" onClick={handleFinish}>
-              完了して保存
-            </Button>
-          )}
+            ) : (
+              <Button variant="contained" color="secondary" onClick={handleFinish}>
+                {mode === "edit" ? "更新して保存" : "完了して保存"}
+              </Button>
+            )}
         </Stack>
       </DialogActions>
     </Dialog>

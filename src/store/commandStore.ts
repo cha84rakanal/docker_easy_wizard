@@ -13,6 +13,12 @@ const createCommandEntry = (form: WizardForm): CommandEntry => ({
   commandLine: buildDockerRunCommand(form),
 });
 
+const updateCommandEntry = (entry: CommandEntry, form: WizardForm): CommandEntry => ({
+  ...entry,
+  ...form,
+  commandLine: buildDockerRunCommand(form),
+});
+
 const hydrateEntries = (entries: CommandEntry[]) =>
   entries.map((entry) => ({
     ...entry,
@@ -44,6 +50,12 @@ export const useCommandStore = () => {
     setEntries((prev) => [createCommandEntry(form), ...prev]);
   };
 
+  const updateEntry = (id: string, form: WizardForm) => {
+    setEntries((prev) =>
+      prev.map((entry) => (entry.id === id ? updateCommandEntry(entry, form) : entry))
+    );
+  };
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, serializedEntries);
   }, [serializedEntries]);
@@ -51,6 +63,7 @@ export const useCommandStore = () => {
   return {
     entries,
     addEntry,
+    updateEntry,
   };
 };
 

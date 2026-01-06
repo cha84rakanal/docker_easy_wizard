@@ -7,18 +7,25 @@ import {
   Chip,
   Container,
   Grid,
+  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import type { CommandEntry } from "../models/command";
 
 type CommandListProps = {
   entries: CommandEntry[];
   onCreateClick: () => void;
+  onEditClick: (entry: CommandEntry) => void;
 };
 
-export default function CommandList({ entries, onCreateClick }: CommandListProps) {
+export default function CommandList({
+  entries,
+  onCreateClick,
+  onEditClick,
+}: CommandListProps) {
   const getImageLabel = (entry: CommandEntry) => {
     if (!entry.imageName.trim()) {
       return "イメージ未設定";
@@ -71,6 +78,14 @@ export default function CommandList({ entries, onCreateClick }: CommandListProps
                     <CardHeader
                       title={entry.containerName || "コンテナ名未設定"}
                       subheader={getImageLabel(entry)}
+                      action={
+                        <IconButton
+                          aria-label="edit"
+                          onClick={() => onEditClick(entry)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      }
                     />
                     <CardContent>
                       <Stack spacing={2}>
