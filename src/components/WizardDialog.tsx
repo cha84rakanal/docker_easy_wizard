@@ -443,12 +443,12 @@ export default function WizardDialog({ open, onClose, onSave }: WizardDialogProp
                     }))
                   }
                 >
-                  <FormControlLabel value="detach" control={<Radio />} label="デタッチ (-d)" />
                   <FormControlLabel
                     value="interactive"
                     control={<Radio />}
                     label="インタラクティブ (-it)"
                   />
+                  <FormControlLabel value="detach" control={<Radio />} label="デタッチ (-d)" />
                 </RadioGroup>
               </FormControl>
             </Stack>

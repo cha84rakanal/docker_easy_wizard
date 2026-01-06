@@ -37,7 +37,7 @@ export const initialForm: WizardForm = {
   containerPath: "",
   gpuMode: "none",
   gpuIds: "",
-  runMode: "detach",
+  runMode: "interactive",
   command: "",
 };
 
