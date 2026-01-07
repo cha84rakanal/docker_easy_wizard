@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -9,10 +10,13 @@ import {
   Grid,
   IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import type { CommandEntry } from "../models/command";
 
 type CommandListProps = {
@@ -26,6 +30,16 @@ export default function CommandList({
   onCreateClick,
   onEditClick,
 }: CommandListProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!copiedId) {
+      return;
+    }
+    const timer = window.setTimeout(() => setCopiedId(null), 1600);
+    return () => window.clearTimeout(timer);
+  }, [copiedId]);
+
   const getImageLabel = (entry: CommandEntry) => {
     if (!entry.imageName.trim()) {
       return "イメージ未設定";
@@ -34,6 +48,24 @@ export default function CommandList({
     return entry.imageName.includes(":")
       ? entry.imageName
       : `${entry.imageName}:${tagName}`;
+  };
+
+  const handleCopy = async (entry: CommandEntry) => {
+    try {
+      await navigator.clipboard.writeText(entry.commandLine);
+      setCopiedId(entry.id);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = entry.commandLine;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopiedId(entry.id);
+    }
   };
 
   return (
@@ -112,12 +144,38 @@ export default function CommandList({
                             backgroundColor: "#f6f4ee",
                             borderRadius: 2,
                             padding: 2,
+                            paddingRight: 5,
                             fontFamily: "'JetBrains Mono', monospace",
                             fontSize: "0.9rem",
                             wordBreak: "break-all",
+                            position: "relative",
                           }}
                         >
                           {entry.commandLine}
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: 8,
+                              right: 8,
+                            }}
+                          >
+                            <Tooltip
+                              title={copiedId === entry.id ? "コピーしました" : "コピー"}
+                              arrow
+                            >
+                              <IconButton
+                                size="small"
+                                onClick={() => handleCopy(entry)}
+                                aria-label="copy"
+                              >
+                                {copiedId === entry.id ? (
+                                  <CheckCircleIcon fontSize="small" color="success" />
+                                ) : (
+                                  <ContentCopyIcon fontSize="small" />
+                                )}
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         </Box>
                       </Stack>
                     </CardContent>
