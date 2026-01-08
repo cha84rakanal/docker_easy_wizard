@@ -2,6 +2,11 @@ export type GpuMode = "none" | "all" | "custom";
 
 export type RunMode = "detach" | "interactive";
 
+export type VolumeBinding = {
+  hostPath: string;
+  containerPath: string;
+};
+
 export type WizardForm = {
   containerName: string;
   imageName: string;
@@ -11,8 +16,7 @@ export type WizardForm = {
   hostPort: string;
   containerPort: string;
   bindVolume: boolean;
-  hostPath: string;
-  containerPath: string;
+  bindVolumes: VolumeBinding[];
   gpuMode: GpuMode;
   gpuIds: string;
   runMode: RunMode;
@@ -33,8 +37,7 @@ export const initialForm: WizardForm = {
   hostPort: "",
   containerPort: "",
   bindVolume: false,
-  hostPath: "",
-  containerPath: "",
+  bindVolumes: [{ hostPath: "", containerPath: "" }],
   gpuMode: "none",
   gpuIds: "",
   runMode: "interactive",
@@ -62,8 +65,14 @@ export const buildDockerRunCommand = (form: WizardForm) => {
     parts.push(`-p ${form.hostPort.trim()}:${form.containerPort.trim()}`);
   }
 
-  if (form.bindVolume && form.hostPath.trim() && form.containerPath.trim()) {
-    parts.push(`-v ${form.hostPath.trim()}:${form.containerPath.trim()}`);
+  if (form.bindVolume) {
+    form.bindVolumes.forEach((binding) => {
+      const hostPath = binding.hostPath.trim();
+      const containerPath = binding.containerPath.trim();
+      if (hostPath && containerPath) {
+        parts.push(`-v ${hostPath}:${containerPath}`);
+      }
+    });
   }
 
   if (form.gpuMode === "all") {

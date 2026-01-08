@@ -28,6 +28,8 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import {
   buildDockerRunCommand,
   initialForm,
@@ -210,6 +212,7 @@ export default function WizardDialog({
     tagMode === "other" || !tagOptions.includes(form.tagName)
       ? "__other__"
       : form.tagName;
+  const canAddVolume = form.bindVolume;
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -385,6 +388,10 @@ export default function WizardDialog({
                         setForm((prev) => ({
                           ...prev,
                           bindVolume: event.target.checked,
+                          bindVolumes:
+                            event.target.checked && prev.bindVolumes.length === 0
+                              ? [{ hostPath: "", containerPath: "" }]
+                              : prev.bindVolumes,
                         }))
                       }
                     />
@@ -393,28 +400,84 @@ export default function WizardDialog({
                 />
                 <Collapse in={form.bindVolume}>
                   <Grid container spacing={2} sx={{ marginTop: 1 }}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        label="ローカルパス"
-                        value={form.hostPath}
-                        onChange={(event) =>
-                          setForm((prev) => ({ ...prev, hostPath: event.target.value }))
-                        }
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        label="コンテナパス"
-                        value={form.containerPath}
-                        onChange={(event) =>
+                    {form.bindVolumes.map((binding, index) => (
+                      <Grid item xs={12} key={`bind-${index}`}>
+                        <Grid container spacing={2} alignItems="center">
+                          <Grid item xs={12} md={5}>
+                            <TextField
+                              label="ローカルパス"
+                              value={binding.hostPath}
+                              onChange={(event) =>
+                                setForm((prev) => {
+                                  const next = [...prev.bindVolumes];
+                                  next[index] = {
+                                    ...next[index],
+                                    hostPath: event.target.value,
+                                  };
+                                  return { ...prev, bindVolumes: next };
+                                })
+                              }
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={5}>
+                            <TextField
+                              label="コンテナパス"
+                              value={binding.containerPath}
+                              onChange={(event) =>
+                                setForm((prev) => {
+                                  const next = [...prev.bindVolumes];
+                                  next[index] = {
+                                    ...next[index],
+                                    containerPath: event.target.value,
+                                  };
+                                  return { ...prev, bindVolumes: next };
+                                })
+                              }
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={2}>
+                            <IconButton
+                              aria-label="remove volume"
+                              onClick={() =>
+                                setForm((prev) => {
+                                  const next = prev.bindVolumes.filter(
+                                    (_, i) => i !== index
+                                  );
+                                  return {
+                                    ...prev,
+                                    bindVolumes:
+                                      next.length === 0
+                                        ? [{ hostPath: "", containerPath: "" }]
+                                        : next,
+                                  };
+                                })
+                              }
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    ))}
+                    <Grid item xs={12}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        onClick={() =>
                           setForm((prev) => ({
                             ...prev,
-                            containerPath: event.target.value,
+                            bindVolumes: [
+                              ...prev.bindVolumes,
+                              { hostPath: "", containerPath: "" },
+                            ],
                           }))
                         }
-                        fullWidth
-                      />
+                        disabled={!canAddVolume}
+                      >
+                        バインドを追加
+                      </Button>
                     </Grid>
                   </Grid>
                 </Collapse>

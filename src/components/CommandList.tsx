@@ -130,10 +130,17 @@ export default function CommandList({
                               <Chip label={`-p ${entry.hostPort}:${entry.containerPort}`} />
                             )}
                           {entry.bindVolume &&
-                            entry.hostPath.trim() &&
-                            entry.containerPath.trim() && (
-                              <Chip label={`-v ${entry.hostPath}:${entry.containerPath}`} />
-                            )}
+                            entry.bindVolumes
+                              .filter(
+                                (binding) =>
+                                  binding.hostPath.trim() && binding.containerPath.trim()
+                              )
+                              .map((binding, index) => (
+                                <Chip
+                                  key={`bind-${entry.id}-${index}`}
+                                  label={`-v ${binding.hostPath}:${binding.containerPath}`}
+                                />
+                              ))}
                           {entry.gpuMode === "all" && <Chip label="--gpus all" />}
                           {entry.gpuMode === "custom" && entry.gpuIds.trim() && (
                             <Chip label={`--gpus device=${entry.gpuIds}`} />

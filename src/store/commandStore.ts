@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   buildDockerRunCommand,
   type CommandEntry,
+  type VolumeBinding,
   type WizardForm,
 } from "../models/command";
 
@@ -19,9 +20,31 @@ const updateCommandEntry = (entry: CommandEntry, form: WizardForm): CommandEntry
   commandLine: buildDockerRunCommand(form),
 });
 
-const hydrateEntries = (entries: CommandEntry[]) =>
+type LegacyEntry = CommandEntry & {
+  hostPath?: string;
+  containerPath?: string;
+  bindVolumes?: VolumeBinding[];
+};
+
+const ensureBindVolumes = (entry: LegacyEntry): VolumeBinding[] => {
+  if (Array.isArray(entry.bindVolumes) && entry.bindVolumes.length > 0) {
+    return entry.bindVolumes;
+  }
+  if (entry.hostPath || entry.containerPath) {
+    return [
+      {
+        hostPath: entry.hostPath ?? "",
+        containerPath: entry.containerPath ?? "",
+      },
+    ];
+  }
+  return [{ hostPath: "", containerPath: "" }];
+};
+
+const hydrateEntries = (entries: LegacyEntry[]) =>
   entries.map((entry) => ({
     ...entry,
+    bindVolumes: ensureBindVolumes(entry),
     commandLine: entry.commandLine || buildDockerRunCommand(entry),
     tagName: entry.tagName || "latest",
   }));
@@ -32,7 +55,7 @@ const loadEntries = (): CommandEntry[] => {
     if (!raw) {
       return [];
     }
-    const parsed = JSON.parse(raw) as CommandEntry[];
+    const parsed = JSON.parse(raw) as LegacyEntry[];
     if (!Array.isArray(parsed)) {
       return [];
     }
