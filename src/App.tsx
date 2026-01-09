@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CommandList from "./components/CommandList";
 import WizardDialog from "./components/WizardDialog";
@@ -9,7 +19,8 @@ import { useCommandStore } from "./store/commandStore";
 export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const { entries, addEntry, updateEntry } = useCommandStore();
+  const [deleteTarget, setDeleteTarget] = useState<CommandEntry | null>(null);
+  const { entries, addEntry, updateEntry, removeEntry } = useCommandStore();
 
   const handleOpenWizard = () => {
     setEditingEntryId(null);
@@ -33,6 +44,21 @@ export default function App() {
       addEntry(form);
     }
     handleCloseWizard();
+  };
+
+  const handleDeleteEntry = (entry: CommandEntry) => {
+    setDeleteTarget(entry);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteTarget) {
+      removeEntry(deleteTarget.id);
+    }
+    setDeleteTarget(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteTarget(null);
   };
 
   const editingEntry = entries.find((entry) => entry.id === editingEntryId);
@@ -84,6 +110,7 @@ export default function App() {
         entries={entries}
         onCreateClick={handleOpenWizard}
         onEditClick={handleEditEntry}
+        onDeleteClick={handleDeleteEntry}
       />
 
       <WizardDialog
@@ -93,6 +120,20 @@ export default function App() {
         initialFormData={initialFormData}
         mode={editingEntryId ? "edit" : "create"}
       />
+      <Dialog open={Boolean(deleteTarget)} onClose={handleCancelDelete}>
+        <DialogTitle>削除の確認</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            {deleteTarget?.containerName || "コンテナ名未設定"} のコマンドを削除します。
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete}>キャンセル</Button>
+          <Button color="error" variant="contained" onClick={handleConfirmDelete}>
+            削除する
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -99,6 +99,10 @@ export const useCommandStore = () => {
     );
   };
 
+  const removeEntry = (id: string) => {
+    setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, serializedEntries);
   }, [serializedEntries]);
@@ -107,6 +111,7 @@ export const useCommandStore = () => {
     entries,
     addEntry,
     updateEntry,
+    removeEntry,
   };
 };
 

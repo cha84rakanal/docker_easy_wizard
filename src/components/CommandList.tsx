@@ -17,18 +17,21 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { CommandEntry } from "../models/command";
 
 type CommandListProps = {
   entries: CommandEntry[];
   onCreateClick: () => void;
   onEditClick: (entry: CommandEntry) => void;
+  onDeleteClick: (entry: CommandEntry) => void;
 };
 
 export default function CommandList({
   entries,
   onCreateClick,
   onEditClick,
+  onDeleteClick,
 }: CommandListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -111,12 +114,20 @@ export default function CommandList({
                       title={entry.containerName || "コンテナ名未設定"}
                       subheader={getImageLabel(entry)}
                       action={
-                        <IconButton
-                          aria-label="edit"
-                          onClick={() => onEditClick(entry)}
-                        >
-                          <EditIcon />
-                        </IconButton>
+                        <Stack direction="row" spacing={1}>
+                          <IconButton
+                            aria-label="edit"
+                            onClick={() => onEditClick(entry)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            aria-label="delete"
+                            onClick={() => onDeleteClick(entry)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Stack>
                       }
                     />
                     <CardContent>
