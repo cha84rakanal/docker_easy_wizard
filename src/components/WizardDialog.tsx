@@ -212,6 +212,7 @@ export default function WizardDialog({
     tagMode === "other" || !tagOptions.includes(form.tagName)
       ? "__other__"
       : form.tagName;
+  const canAddPort = form.publishPorts;
   const canAddVolume = form.bindVolume;
 
   return (
@@ -344,6 +345,10 @@ export default function WizardDialog({
                         setForm((prev) => ({
                           ...prev,
                           publishPorts: event.target.checked,
+                          portBindings:
+                            event.target.checked && prev.portBindings.length === 0
+                              ? [{ hostPort: "", containerPort: "" }]
+                              : prev.portBindings,
                         }))
                       }
                     />
@@ -352,28 +357,84 @@ export default function WizardDialog({
                 />
                 <Collapse in={form.publishPorts}>
                   <Grid container spacing={2} sx={{ marginTop: 1 }}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        label="ローカルポート"
-                        value={form.hostPort}
-                        onChange={(event) =>
-                          setForm((prev) => ({ ...prev, hostPort: event.target.value }))
-                        }
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        label="コンテナポート"
-                        value={form.containerPort}
-                        onChange={(event) =>
+                    {form.portBindings.map((binding, index) => (
+                      <Grid item xs={12} key={`port-${index}`}>
+                        <Grid container spacing={2} alignItems="center">
+                          <Grid item xs={12} md={5}>
+                            <TextField
+                              label="ローカルポート"
+                              value={binding.hostPort}
+                              onChange={(event) =>
+                                setForm((prev) => {
+                                  const next = [...prev.portBindings];
+                                  next[index] = {
+                                    ...next[index],
+                                    hostPort: event.target.value,
+                                  };
+                                  return { ...prev, portBindings: next };
+                                })
+                              }
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={5}>
+                            <TextField
+                              label="コンテナポート"
+                              value={binding.containerPort}
+                              onChange={(event) =>
+                                setForm((prev) => {
+                                  const next = [...prev.portBindings];
+                                  next[index] = {
+                                    ...next[index],
+                                    containerPort: event.target.value,
+                                  };
+                                  return { ...prev, portBindings: next };
+                                })
+                              }
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={2}>
+                            <IconButton
+                              aria-label="remove port"
+                              onClick={() =>
+                                setForm((prev) => {
+                                  const next = prev.portBindings.filter(
+                                    (_, i) => i !== index
+                                  );
+                                  return {
+                                    ...prev,
+                                    portBindings:
+                                      next.length === 0
+                                        ? [{ hostPort: "", containerPort: "" }]
+                                        : next,
+                                  };
+                                })
+                              }
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    ))}
+                    <Grid item xs={12}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        onClick={() =>
                           setForm((prev) => ({
                             ...prev,
-                            containerPort: event.target.value,
+                            portBindings: [
+                              ...prev.portBindings,
+                              { hostPort: "", containerPort: "" },
+                            ],
                           }))
                         }
-                        fullWidth
-                      />
+                        disabled={!canAddPort}
+                      >
+                        ポートを追加
+                      </Button>
                     </Grid>
                   </Grid>
                 </Collapse>

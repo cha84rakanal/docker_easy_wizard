@@ -125,10 +125,18 @@ export default function CommandList({
                           {entry.removeAfterStop && <Chip label="--rm" />}
                           <Chip label={entry.runMode === "detach" ? "-d" : "-it"} />
                           {entry.publishPorts &&
-                            entry.hostPort.trim() &&
-                            entry.containerPort.trim() && (
-                              <Chip label={`-p ${entry.hostPort}:${entry.containerPort}`} />
-                            )}
+                            entry.portBindings
+                              .filter(
+                                (binding) =>
+                                  binding.hostPort.trim() &&
+                                  binding.containerPort.trim()
+                              )
+                              .map((binding, index) => (
+                                <Chip
+                                  key={`port-${entry.id}-${index}`}
+                                  label={`-p ${binding.hostPort}:${binding.containerPort}`}
+                                />
+                              ))}
                           {entry.bindVolume &&
                             entry.bindVolumes
                               .filter(

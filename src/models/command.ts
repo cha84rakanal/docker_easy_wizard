@@ -7,14 +7,18 @@ export type VolumeBinding = {
   containerPath: string;
 };
 
+export type PortBinding = {
+  hostPort: string;
+  containerPort: string;
+};
+
 export type WizardForm = {
   containerName: string;
   imageName: string;
   tagName: string;
   removeAfterStop: boolean;
   publishPorts: boolean;
-  hostPort: string;
-  containerPort: string;
+  portBindings: PortBinding[];
   bindVolume: boolean;
   bindVolumes: VolumeBinding[];
   gpuMode: GpuMode;
@@ -34,8 +38,7 @@ export const initialForm: WizardForm = {
   tagName: "latest",
   removeAfterStop: false,
   publishPorts: false,
-  hostPort: "",
-  containerPort: "",
+  portBindings: [{ hostPort: "", containerPort: "" }],
   bindVolume: false,
   bindVolumes: [{ hostPath: "", containerPath: "" }],
   gpuMode: "none",
@@ -61,8 +64,14 @@ export const buildDockerRunCommand = (form: WizardForm) => {
     parts.push("--name", form.containerName.trim());
   }
 
-  if (form.publishPorts && form.hostPort.trim() && form.containerPort.trim()) {
-    parts.push(`-p ${form.hostPort.trim()}:${form.containerPort.trim()}`);
+  if (form.publishPorts) {
+    form.portBindings.forEach((binding) => {
+      const hostPort = binding.hostPort.trim();
+      const containerPort = binding.containerPort.trim();
+      if (hostPort && containerPort) {
+        parts.push(`-p ${hostPort}:${containerPort}`);
+      }
+    });
   }
 
   if (form.bindVolume) {

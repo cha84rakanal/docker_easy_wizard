@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   buildDockerRunCommand,
   type CommandEntry,
+  type PortBinding,
   type VolumeBinding,
   type WizardForm,
 } from "../models/command";
@@ -21,9 +22,27 @@ const updateCommandEntry = (entry: CommandEntry, form: WizardForm): CommandEntry
 });
 
 type LegacyEntry = CommandEntry & {
+  hostPort?: string;
+  containerPort?: string;
+  portBindings?: PortBinding[];
   hostPath?: string;
   containerPath?: string;
   bindVolumes?: VolumeBinding[];
+};
+
+const ensurePortBindings = (entry: LegacyEntry): PortBinding[] => {
+  if (Array.isArray(entry.portBindings) && entry.portBindings.length > 0) {
+    return entry.portBindings;
+  }
+  if (entry.hostPort || entry.containerPort) {
+    return [
+      {
+        hostPort: entry.hostPort ?? "",
+        containerPort: entry.containerPort ?? "",
+      },
+    ];
+  }
+  return [{ hostPort: "", containerPort: "" }];
 };
 
 const ensureBindVolumes = (entry: LegacyEntry): VolumeBinding[] => {
@@ -44,6 +63,7 @@ const ensureBindVolumes = (entry: LegacyEntry): VolumeBinding[] => {
 const hydrateEntries = (entries: LegacyEntry[]) =>
   entries.map((entry) => ({
     ...entry,
+    portBindings: ensurePortBindings(entry),
     bindVolumes: ensureBindVolumes(entry),
     commandLine: entry.commandLine || buildDockerRunCommand(entry),
     tagName: entry.tagName || "latest",
