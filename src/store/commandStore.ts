@@ -61,13 +61,20 @@ const ensureBindVolumes = (entry: LegacyEntry): VolumeBinding[] => {
 };
 
 const hydrateEntries = (entries: LegacyEntry[]) =>
-  entries.map((entry) => ({
-    ...entry,
-    portBindings: ensurePortBindings(entry),
-    bindVolumes: ensureBindVolumes(entry),
-    commandLine: entry.commandLine || buildDockerRunCommand(entry),
-    tagName: entry.tagName || "latest",
-  }));
+  entries.map((entry) => {
+    const normalized: CommandEntry = {
+      ...entry,
+      memo: entry.memo ?? "",
+      portBindings: ensurePortBindings(entry),
+      bindVolumes: ensureBindVolumes(entry),
+      tagName: entry.tagName || "latest",
+      commandLine: entry.commandLine || "",
+    };
+    return {
+      ...normalized,
+      commandLine: normalized.commandLine || buildDockerRunCommand(normalized),
+    };
+  });
 
 const loadEntries = (): CommandEntry[] => {
   try {

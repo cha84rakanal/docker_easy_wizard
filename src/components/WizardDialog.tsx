@@ -233,6 +233,18 @@ export default function WizardDialog({
             ))}
           </Stepper>
 
+          <TextField
+            label="メモ"
+            value={form.memo}
+            placeholder="このコマンドの用途を記録"
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, memo: event.target.value }))
+            }
+            fullWidth
+            multiline
+            minRows={2}
+          />
+
           {activeStep === 0 && (
             <Stack spacing={2}>
               <TextField

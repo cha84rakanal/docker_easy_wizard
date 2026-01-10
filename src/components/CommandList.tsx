@@ -132,6 +132,11 @@ export default function CommandList({
                     />
                     <CardContent>
                       <Stack spacing={2}>
+                        {entry.memo.trim() && (
+                          <Typography variant="body2" color="text.secondary">
+                            {entry.memo}
+                          </Typography>
+                        )}
                         <Stack direction="row" spacing={1} flexWrap="wrap">
                           {entry.removeAfterStop && <Chip label="--rm" />}
                           <Chip label={entry.runMode === "detach" ? "-d" : "-it"} />

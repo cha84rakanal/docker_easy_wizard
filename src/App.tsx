@@ -64,6 +64,7 @@ export default function App() {
   const editingEntry = entries.find((entry) => entry.id === editingEntryId);
   const initialFormData: WizardForm | undefined = editingEntry
     ? {
+        memo: editingEntry.memo,
         containerName: editingEntry.containerName,
         imageName: editingEntry.imageName,
         tagName: editingEntry.tagName,

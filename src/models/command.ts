@@ -13,6 +13,7 @@ export type PortBinding = {
 };
 
 export type WizardForm = {
+  memo: string;
   containerName: string;
   imageName: string;
   tagName: string;
@@ -33,6 +34,7 @@ export type CommandEntry = WizardForm & {
 };
 
 export const initialForm: WizardForm = {
+  memo: "",
   containerName: "",
   imageName: "",
   tagName: "latest",
