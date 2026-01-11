@@ -4,17 +4,17 @@ export const appTheme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#3aa9d6",
+      main: "#2496ed",
     },
     secondary: {
-      main: "#6fd3f5",
+      main: "#12b5cb",
     },
     background: {
-      default: "#eef7fb",
+      default: "#f4f6f8",
       paper: "#ffffff",
     },
     info: {
-      main: "#2b95bf",
+      main: "#1e88e5",
     },
   },
   typography: {
