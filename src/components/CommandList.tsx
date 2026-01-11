@@ -18,6 +18,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
 import type { CommandEntry } from "../models/command";
 
 type CommandListProps = {
@@ -25,6 +26,7 @@ type CommandListProps = {
   onCreateClick: () => void;
   onEditClick: (entry: CommandEntry) => void;
   onDeleteClick: (entry: CommandEntry) => void;
+  onDuplicateClick: (entry: CommandEntry) => void;
 };
 
 export default function CommandList({
@@ -32,6 +34,7 @@ export default function CommandList({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  onDuplicateClick,
 }: CommandListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -120,6 +123,12 @@ export default function CommandList({
                             onClick={() => onEditClick(entry)}
                           >
                             <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            aria-label="duplicate"
+                            onClick={() => onDuplicateClick(entry)}
+                          >
+                            <FileCopyIcon />
                           </IconButton>
                           <IconButton
                             aria-label="delete"

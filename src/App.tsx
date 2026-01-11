@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  TextField,
   Toolbar,
   Typography,
 } from "@mui/material";
@@ -20,7 +21,10 @@ export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CommandEntry | null>(null);
-  const { entries, addEntry, updateEntry, removeEntry } = useCommandStore();
+  const [duplicateTarget, setDuplicateTarget] = useState<CommandEntry | null>(null);
+  const [duplicateName, setDuplicateName] = useState("");
+  const { entries, addEntry, updateEntry, removeEntry, duplicateEntry } =
+    useCommandStore();
 
   const handleOpenWizard = () => {
     setEditingEntryId(null);
@@ -50,6 +54,11 @@ export default function App() {
     setDeleteTarget(entry);
   };
 
+  const handleDuplicateEntry = (entry: CommandEntry) => {
+    setDuplicateTarget(entry);
+    setDuplicateName(entry.containerName || "");
+  };
+
   const handleConfirmDelete = () => {
     if (deleteTarget) {
       removeEntry(deleteTarget.id);
@@ -59,6 +68,23 @@ export default function App() {
 
   const handleCancelDelete = () => {
     setDeleteTarget(null);
+  };
+
+  const handleConfirmDuplicate = () => {
+    if (duplicateTarget) {
+      const trimmedName = duplicateName.trim();
+      duplicateEntry(
+        duplicateTarget,
+        trimmedName || `${duplicateTarget.containerName}-copy`
+      );
+    }
+    setDuplicateTarget(null);
+    setDuplicateName("");
+  };
+
+  const handleCancelDuplicate = () => {
+    setDuplicateTarget(null);
+    setDuplicateName("");
   };
 
   const editingEntry = entries.find((entry) => entry.id === editingEntryId);
@@ -112,6 +138,7 @@ export default function App() {
         onCreateClick={handleOpenWizard}
         onEditClick={handleEditEntry}
         onDeleteClick={handleDeleteEntry}
+        onDuplicateClick={handleDuplicateEntry}
       />
 
       <WizardDialog
@@ -132,6 +159,31 @@ export default function App() {
           <Button onClick={handleCancelDelete}>キャンセル</Button>
           <Button color="error" variant="contained" onClick={handleConfirmDelete}>
             削除する
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(duplicateTarget)} onClose={handleCancelDuplicate}>
+        <DialogTitle>コピーの作成</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            コンテナ名のみ変更できます。
+          </Typography>
+          <TextField
+            label="コンテナ名"
+            value={duplicateName}
+            onChange={(event) => setDuplicateName(event.target.value)}
+            fullWidth
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDuplicate}>キャンセル</Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirmDuplicate}
+            disabled={!duplicateName.trim()}
+          >
+            作成する
           </Button>
         </DialogActions>
       </Dialog>

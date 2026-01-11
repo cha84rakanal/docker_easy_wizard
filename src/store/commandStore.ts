@@ -15,6 +15,16 @@ const createCommandEntry = (form: WizardForm): CommandEntry => ({
   commandLine: buildDockerRunCommand(form),
 });
 
+const cloneCommandEntry = (entry: CommandEntry, containerName: string): CommandEntry => ({
+  ...entry,
+  id: crypto.randomUUID(),
+  containerName,
+  commandLine: buildDockerRunCommand({
+    ...entry,
+    containerName,
+  }),
+});
+
 const updateCommandEntry = (entry: CommandEntry, form: WizardForm): CommandEntry => ({
   ...entry,
   ...form,
@@ -110,6 +120,10 @@ export const useCommandStore = () => {
     setEntries((prev) => prev.filter((entry) => entry.id !== id));
   };
 
+  const duplicateEntry = (entry: CommandEntry, containerName: string) => {
+    setEntries((prev) => [cloneCommandEntry(entry, containerName), ...prev]);
+  };
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, serializedEntries);
   }, [serializedEntries]);
@@ -119,6 +133,7 @@ export const useCommandStore = () => {
     addEntry,
     updateEntry,
     removeEntry,
+    duplicateEntry,
   };
 };
 
