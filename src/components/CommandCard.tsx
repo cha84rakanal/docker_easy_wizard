@@ -94,7 +94,7 @@ export default function CommandCard({
               {entry.memo}
             </Typography>
           )}
-          <Stack direction="row" spacing={1} flexWrap="wrap">
+          <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
             {entry.removeAfterStop && <Chip label="--rm" />}
             <Chip label={entry.runMode === "detach" ? "-d" : "-it"} />
             {entry.publishPorts &&
