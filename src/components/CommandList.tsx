@@ -54,16 +54,50 @@ export default function CommandList({
                 </Card>
               </Grid>
             ) : (
-              entries.map((entry) => (
-                <Grid item xs={12} md={6} key={entry.id}>
-                  <CommandCard
-                    entry={entry}
-                    onEditClick={onEditClick}
-                    onDeleteClick={onDeleteClick}
-                    onDuplicateClick={onDuplicateClick}
-                  />
+              <>
+                {entries.map((entry) => (
+                  <Grid item xs={12} md={6} key={entry.id}>
+                    <CommandCard
+                      entry={entry}
+                      onEditClick={onEditClick}
+                      onDeleteClick={onDeleteClick}
+                      onDuplicateClick={onDuplicateClick}
+                    />
+                  </Grid>
+                ))}
+                <Grid item xs={12} md={6}>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={onCreateClick}
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      minHeight: 220,
+                      borderRadius: 2,
+                      border: "2px dashed rgba(36, 150, 237, 0.35)",
+                      backgroundColor: "transparent",
+                      color: "primary.main",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: "rgba(36, 150, 237, 0.08)",
+                        borderColor: "rgba(36, 150, 237, 0.6)",
+                      },
+                    }}
+                  >
+                    <AddIcon />
+                    新規作成
+                  </Box>
                 </Grid>
-              ))
+              </>
             )}
           </Grid>
         </Stack>
