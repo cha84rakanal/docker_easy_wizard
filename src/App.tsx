@@ -95,6 +95,8 @@ export default function App() {
         imageName: editingEntry.imageName,
         tagName: editingEntry.tagName,
         removeAfterStop: editingEntry.removeAfterStop,
+        privileged: editingEntry.privileged,
+        envVars: editingEntry.envVars,
         publishPorts: editingEntry.publishPorts,
         portBindings: editingEntry.portBindings,
         bindVolume: editingEntry.bindVolume,

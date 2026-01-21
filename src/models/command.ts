@@ -12,12 +12,19 @@ export type PortBinding = {
   containerPort: string;
 };
 
+export type EnvVar = {
+  key: string;
+  value: string;
+};
+
 export type WizardForm = {
   memo: string;
   containerName: string;
   imageName: string;
   tagName: string;
   removeAfterStop: boolean;
+  privileged: boolean;
+  envVars: EnvVar[];
   publishPorts: boolean;
   portBindings: PortBinding[];
   bindVolume: boolean;
@@ -39,6 +46,8 @@ export const initialForm: WizardForm = {
   imageName: "",
   tagName: "latest",
   removeAfterStop: false,
+  privileged: false,
+  envVars: [{ key: "", value: "" }],
   publishPorts: false,
   portBindings: [{ hostPort: "", containerPort: "" }],
   bindVolume: false,
@@ -62,6 +71,10 @@ export const buildDockerRunCommand = (form: WizardForm) => {
     parts.push("-it");
   }
 
+  if (form.privileged) {
+    parts.push("--privileged");
+  }
+
   if (form.containerName.trim()) {
     parts.push("--name", form.containerName.trim());
   }
@@ -75,6 +88,14 @@ export const buildDockerRunCommand = (form: WizardForm) => {
       }
     });
   }
+
+  form.envVars.forEach((envVar) => {
+    const key = envVar.key.trim();
+    const value = envVar.value.trim();
+    if (key) {
+      parts.push(`-e ${key}${value ? `=${value}` : ""}`);
+    }
+  });
 
   if (form.bindVolume) {
     form.bindVolumes.forEach((binding) => {

@@ -97,6 +97,7 @@ export default function CommandCard({
           <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
             {entry.removeAfterStop && <Chip label="--rm" />}
             <Chip label={entry.runMode === "detach" ? "-d" : "-it"} />
+            {entry.privileged && <Chip label="--privileged" />}
             {entry.publishPorts &&
               entry.portBindings
                 .filter(
@@ -109,6 +110,14 @@ export default function CommandCard({
                     label={`-p ${binding.hostPort}:${binding.containerPort}`}
                   />
                 ))}
+            {entry.envVars
+              .filter((envVar) => envVar.key.trim())
+              .map((envVar, index) => (
+                <Chip
+                  key={`env-${entry.id}-${index}`}
+                  label={`-e ${envVar.key}${envVar.value ? `=${envVar.value}` : ""}`}
+                />
+              ))}
             {entry.bindVolume &&
               entry.bindVolumes
                 .filter(

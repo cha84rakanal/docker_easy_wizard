@@ -62,6 +62,7 @@ export default function WizardDialog({
   const [tagOptions, setTagOptions] = useState<string[]>([]);
   const [tagLoading, setTagLoading] = useState(false);
   const [tagMode, setTagMode] = useState<"preset" | "other">("preset");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const commandPreview = useMemo(() => buildDockerRunCommand(form), [form]);
 
@@ -72,6 +73,7 @@ export default function WizardDialog({
     setForm(initialFormData ?? initialForm);
     setActiveStep(0);
     setTagMode("preset");
+    setShowAdvanced(false);
   }, [initialFormData, open]);
 
   useEffect(() => {
@@ -192,6 +194,7 @@ export default function WizardDialog({
     setActiveStep(0);
     setForm(initialForm);
     setTagMode("preset");
+    setShowAdvanced(false);
   };
 
   const handleNext = () => {
@@ -612,9 +615,118 @@ export default function WizardDialog({
                   />
                   <FormControlLabel value="detach" control={<Radio />} label="デタッチ (-d)" />
                 </RadioGroup>
-              </FormControl>
-            </Stack>
-          )}
+                </FormControl>
+
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowAdvanced((prev) => !prev)}
+                >
+                  {showAdvanced ? "詳細設定を閉じる" : "詳細設定"}
+                </Button>
+
+                <Collapse in={showAdvanced}>
+                  <Stack spacing={2}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={form.privileged}
+                          onChange={(event) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              privileged: event.target.checked,
+                            }))
+                          }
+                        />
+                      }
+                      label="特権モード (--privileged)"
+                    />
+
+                    <Box>
+                      <Typography variant="subtitle1" gutterBottom>
+                        環境変数 (-e / --env)
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {form.envVars.map((envVar, index) => (
+                          <Grid item xs={12} key={`env-${index}`}>
+                            <Grid container spacing={2} alignItems="center">
+                              <Grid item xs={12} md={5}>
+                                <TextField
+                                  label="キー"
+                                  value={envVar.key}
+                                  onChange={(event) =>
+                                    setForm((prev) => {
+                                      const next = [...prev.envVars];
+                                      next[index] = {
+                                        ...next[index],
+                                        key: event.target.value,
+                                      };
+                                      return { ...prev, envVars: next };
+                                    })
+                                  }
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={5}>
+                                <TextField
+                                  label="値"
+                                  value={envVar.value}
+                                  onChange={(event) =>
+                                    setForm((prev) => {
+                                      const next = [...prev.envVars];
+                                      next[index] = {
+                                        ...next[index],
+                                        value: event.target.value,
+                                      };
+                                      return { ...prev, envVars: next };
+                                    })
+                                  }
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={2}>
+                                <IconButton
+                                  aria-label="remove env"
+                                  onClick={() =>
+                                    setForm((prev) => {
+                                      const next = prev.envVars.filter(
+                                        (_, i) => i !== index
+                                      );
+                                      return {
+                                        ...prev,
+                                        envVars:
+                                          next.length === 0
+                                            ? [{ key: "", value: "" }]
+                                            : next,
+                                      };
+                                    })
+                                  }
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Grid>
+                            </Grid>
+                          </Grid>
+                        ))}
+                        <Grid item xs={12}>
+                          <Button
+                            variant="outlined"
+                            startIcon={<AddIcon />}
+                            onClick={() =>
+                              setForm((prev) => ({
+                                ...prev,
+                                envVars: [...prev.envVars, { key: "", value: "" }],
+                              }))
+                            }
+                          >
+                            環境変数を追加
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </Stack>
+                </Collapse>
+              </Stack>
+            )}
 
           {activeStep === 2 && (
             <Stack spacing={2}>

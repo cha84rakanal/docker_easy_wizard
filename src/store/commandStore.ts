@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   buildDockerRunCommand,
   type CommandEntry,
+  type EnvVar,
   type PortBinding,
   type VolumeBinding,
   type WizardForm,
@@ -38,6 +39,15 @@ type LegacyEntry = CommandEntry & {
   hostPath?: string;
   containerPath?: string;
   bindVolumes?: VolumeBinding[];
+  envVars?: EnvVar[];
+  privileged?: boolean;
+};
+
+const ensureEnvVars = (entry: LegacyEntry): EnvVar[] => {
+  if (Array.isArray(entry.envVars) && entry.envVars.length > 0) {
+    return entry.envVars;
+  }
+  return [{ key: "", value: "" }];
 };
 
 const ensurePortBindings = (entry: LegacyEntry): PortBinding[] => {
@@ -75,6 +85,8 @@ const hydrateEntries = (entries: LegacyEntry[]) =>
     const normalized: CommandEntry = {
       ...entry,
       memo: entry.memo ?? "",
+      privileged: Boolean(entry.privileged),
+      envVars: ensureEnvVars(entry),
       portBindings: ensurePortBindings(entry),
       bindVolumes: ensureBindVolumes(entry),
       tagName: entry.tagName || "latest",
@@ -136,5 +148,3 @@ export const useCommandStore = () => {
     duplicateEntry,
   };
 };
-
-export type { GpuMode, RunMode };
