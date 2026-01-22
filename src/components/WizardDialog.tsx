@@ -351,7 +351,7 @@ export default function WizardDialog({
                 label="停止後にコンテナを削除する (--rm)"
               />
 
-              <Box>
+              <Box sx={{ paddingLeft: "12px" }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -455,7 +455,7 @@ export default function WizardDialog({
                 </Collapse>
               </Box>
 
-              <Box>
+              <Box sx={{ paddingLeft: "12px" }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -641,7 +641,7 @@ export default function WizardDialog({
                       label="特権モード (--privileged)"
                     />
 
-                    <Box>
+                    <Box sx={{ paddingLeft: "12px"}}>
                       <Typography variant="subtitle1" gutterBottom>
                         環境変数 (-e / --env)
                       </Typography>
